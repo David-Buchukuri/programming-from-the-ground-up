@@ -99,7 +99,7 @@ How does pipelining work and why it speeds up processing time.
 In a non-pipelined CPU, after the first instruction completes stage 1, the CPU must wait for all remaining stages to complete before fetching the next instruction. This results in significant inefficiencies, as each stage remains idle for a substantial portion of the time.
 We can observe that, in instruction processing when stage 1 is finished, nothing happens on stage 1 for 4 cpu cycles. Same can be said for every single stage. To resolve this inefficiency we can fetch another instruction and do stage 1 processing on it while first instruction is on stage 2. When first instruction goes to stage 3, second instruction moves to stage 2 processing and a new instruction is being processed in stage 1. This is the reason why pipelining speeds up processing. Basically it allows different instructions to be processed simultaneously.
 
-sourcce:
+source:
 https://www.geeksforgeeks.org/computer-organization-and-architecture-pipelining-set-1-execution-stages-and-throughput/
 
 #### Research and then describe the tradeoffs between fixed-length instructions and variable-length instructions.
