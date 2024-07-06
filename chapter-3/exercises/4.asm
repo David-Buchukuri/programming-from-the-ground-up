@@ -8,7 +8,7 @@
 # %eax - Holds the address of the end of the array
 #
 # The following memory locations are used:
-# data_items - contains the item data. A 0 is used to terminate the data
+# data_items - contains the item data.
 
 .section .data
 
