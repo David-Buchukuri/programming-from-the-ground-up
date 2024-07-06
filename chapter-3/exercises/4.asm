@@ -13,7 +13,7 @@
 .section .data
 
 #            0   4    8    12   16      20   24
-array: .long 1,  2,   9,   5,   234,    9,   125
+array: .long 1,  2,   9,   5,   237,    9,   125
 array_length: .long 7
 
 
@@ -29,7 +29,7 @@ update_max_element:
     jmp iterate
 
 _start:
-leal array, %edi
+movl $array, %edi
 movl (%edi), %ebx
 
 
