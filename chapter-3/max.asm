@@ -11,7 +11,7 @@
 .section .data
 
 data_array: 
-.long 1, 2, 9, 5, 2, 9, 25, 0
+.long 1, 2, 9, 5, 2, 9, 125, 0
 
 .section .text
 .global _start
@@ -21,18 +21,15 @@ data_array:
 # %ebx - Largest data item found
 # %eax - Current data item
 
+update_max_element:
+    movl %eax, %ebx
+    jmp iterate
+
 _start:
 
 movl $0, %edi
 movl data_array(, %edi, 4), %ebx
 movl %ebx, %eax
-
-jmp loop
-
-update_max_element:
-    movl %eax, %ebx
-    jmp iterate
-
 
 loop:
     cmpl $0, %eax
