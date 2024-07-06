@@ -9,14 +9,14 @@
 #
 # The following memory locations are used:
 # data_items - contains the item data.
-# array_last_idx - contains the last index of the array. It's used to terminate the data.
+# array_length - The length of the array. It's used to terminate the data.
 
 # In this program I didn't store some variables in registers. I left them in ram, which slows down the program.
 
 .section .data
 
-data_array: .long 1, 2, 9, 79, 2, 9, 12
-array_last_idx: .long 7
+data_array: .long 1, 2, 9, 79, 2, 9, 88
+array_length: .long 7
 
 .section .text
 .global _start
@@ -36,7 +36,7 @@ movl $0, %edi
 movl data_array(, %edi, 4), %ebx
 
 loop:
-    cmpl array_last_idx, %edi
+    cmpl array_length, %edi
     je exit
 
     cmpl %ebx, data_array(, %edi, 4)
