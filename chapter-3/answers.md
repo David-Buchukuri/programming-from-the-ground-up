@@ -112,3 +112,11 @@ exit:
 - movl data_array(, %edi, 4), %eax - indexed addressing mode, register addressing mode
 - movl $1, %eax - immediate mode, register addressing mode
 - int $0x80 - immediate mode
+
+## Use the Concepts
+
+#### What would the instruction movl \_start, %eax do? Be specific, based on your knowledge of both addressing modes and the meaning of \_start . How would this differ from the instruction movl $\_start, %eax ?
+
+`movl _start, %eax` will write in %eax whatever value is stored in the word with an address of \_start.
+
+`movl $\_start, %eax` will write in %eax memory address of the \_start.
