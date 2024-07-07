@@ -120,3 +120,16 @@ exit:
 `movl _start, %eax` will write in %eax whatever value is stored in the word with an address of \_start.
 
 `movl $\_start, %eax` will write in %eax memory address of the \_start.
+
+## Going Further
+
+#### Modify the first program to leave off the int instruction line. Assemble, link, and execute the new program. What error message do you get. Why do you think this might be?
+
+I am getting a segmentation fault error. It's probably because program does not terminate. Program probably reads and tries to execute instructions from memory which is beyond instructions which we wrote and because of that, an error is happening.
+
+#### So far, we have discussed three approaches to finding the end of the list - using a special number, using the ending address, and using the length count. Which approach do you think is best? Why? Which approach would you use if you knew that the list was sorted? Why?
+
+I think providing array's lengths is the best way because of it's simplicity and universality. If we use a special number for termination, that means we can't use that number anywhere in the list. That's not flexible.
+About an ending address, user can't provide ending address because there is no way of knowing it before a program runs.
+
+For a sorted list, I would use the array length approach, because it's straightforward and simple.
