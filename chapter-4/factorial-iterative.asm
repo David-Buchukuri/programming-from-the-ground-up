@@ -5,7 +5,7 @@
 
 _start:
     # adding first argument to the stack
-    pushl $2
+    pushl $5
 
     # calling factorial function
     # this pushes return address to the stack and modifies %eip (instruction pointer with function address)
@@ -24,7 +24,7 @@ _start:
     movl $1, %eax
     int $0x80
 
-# todo handle negative numbers, 1 and 0 as an arguments
+.type factorial, @function
 factorial:
     # save old base pointer in stack
     pushl %ebp
@@ -33,7 +33,7 @@ factorial:
     movl %esp, %ebp
 
 
-    # allocate 4 byte some memory block to store value which will hold the next 
+    # allocate 4 byte memory block to store value which will hold the next 
     # integer to multiply with our current product
     subl $4, %esp
 
@@ -54,9 +54,9 @@ factorial:
 
 
     loop:
-        # if we are multiplying by 1, it means we reached the end so we stop
-        cmpl $1, -4(%ebp)
-        je end_factorial
+        # if we are multiplying by the value less than 2, it means we reached the end so we stop
+        cmpl $2, -4(%ebp)
+        jl end_factorial
 
         # multiply current product by the next number and update it with the resulting product
         imull -4(%ebp), %eax
@@ -70,12 +70,26 @@ factorial:
     end_factorial:
         # result is already in %eax register
 
-        # deallocate space allocated for additional local variables in the function(reset stack pointer)
-        movl %ebp, %esp
+        # if result is 0, which will happen only when argument is 0, make result 1
+        cmpl $0, %eax
+        jne check_for_negative
+        movl $1, %eax
+        
 
-        # reset base pointer to it's old value
-        popl %ebp
+        # if result is negative, make it -1
+        cmpl $0, %eax
+        check_for_negative:
+            jge cleanup
+            movl $-1, %eax
+            
 
-        # pop from stack(should be the return address) and set %eip register to that value, 
-        # to continue executing commands from there
-        ret
+        cleanup:
+            # deallocate space allocated for additional local variables in the function(reset stack pointer)
+            movl %ebp, %esp
+
+            # reset base pointer to it's old value
+            popl %ebp
+
+            # pop from stack(should be the return address) and set %eip register to that value, 
+            # to continue executing commands from there
+            ret
