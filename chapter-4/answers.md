@@ -75,3 +75,11 @@ Smaller set of primitives helps programmers to understand the system more easily
 On the other hand, larger set of primitives ensures that programmers don't have to 'reinvent the wheel' for the common functionality all the time. Larger set of primitives provide lots of pre implemented functions, which are optimized and don't contain any bugs, eliminating mistakes a programmer could have made when implementing the same functions himself.
 
 I think having larger primitive set but also keeping elementary primitives accessible is the best approach.
+<br>
+<br>
+
+## Can you build a calling convention without using the stack? What limitations might it have?
+
+We can but, without a stack we won't be able to call functions from inside of other functions.
+For each function we need a storage in memory where parameters and local variables will be stored.
+Because the number of CPU registers are limited, we need to use ram for that purpose. The memory where we will store that data needs to be managed in a way that local variables, arguments and return addresses of different functions won't be mixed up. The stack does all of this for us.
