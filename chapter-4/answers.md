@@ -52,7 +52,26 @@ It is used to access function's arguments and local variables.
 #### What is a stack frame?
 
 Stack frame is a contiguous chunk of memory allocated for the function call. It includes data like function arguments, return address, local variables, old base pointer address and even register values before calling that function.
+<br>
+<br>
 
 ## Use the Concepts
 
+#### Explain the problems that would arise without a standard calling convention.
+
+If we didn't use standard calling conventions, every programmer would implement function calls in their
+own way. It would be hard for other programmers to wrap their had around other's code.
+<br>
+<br>
+
 ## Going Further
+
+#### Do you think it’s better for a system to have a large set of primitives or a small one, assuming that the larger set can be written in terms of the smaller one?
+
+Having both larger and smaller primitives has it's own pros and cons.
+
+Smaller set of primitives helps programmers to understand the system more easily. It provides more flexibility and it's easier to maintain.
+
+On the other hand, larger set of primitives ensures that programmers don't have to 'reinvent the wheel' for the common functionality all the time. Larger set of primitives provide lots of pre implemented functions, which are optimized and don't contain any bugs, eliminating mistakes a programmer could have made when implementing the same functions himself.
+
+I think having larger primitive set but also keeping elementary primitives accessible is the best approach.
