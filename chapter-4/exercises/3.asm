@@ -77,7 +77,6 @@ max:
     movl 8(%ebp), %ecx
 
     # set initial max value as the first element of the array
-    # this is achieved by using index addressing mode and getting 0'th index
     movl (%ecx), %eax
 
 
