@@ -10,7 +10,7 @@ file_name: .ascii "text.txt\0"
 .global _start
 
 _start:
-# 1. open system call
+# 1. open system call - returns a file descriptor
 # syscall number - should be stored in %eax. 5 is for opening files.
 # address of the first character of the filename - should be stored in %ebx(it should be null terminated)
 # mode - can be read, write, read and write , etc... . should be stored in %ecx. for read we need to set 0, for write 03101.
@@ -21,6 +21,9 @@ movl $file_name, %ebx
 movl $0, %ecx
 movl $0666, %edx
 int $0x80
+
+cmpl $0, %eax
+jl exit
 
 # 2. Linux will then return to you a file descriptor in %eax . Remember, this is a
 # number that you use to refer to this file throughout your program.
@@ -61,5 +64,7 @@ int $0x80
 
 # save character we read in ebx and exit
 popl %ebx
+
+exit:
 movl $1, %eax
 int $0x80
