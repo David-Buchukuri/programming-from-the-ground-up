@@ -8,5 +8,5 @@ fi
 filename="${1%.asm}"
 
 as --32 "$filename.asm" -o "$filename.o"
-ld -m elf_i386 "$filename.o" -o "$filename"
-./"$filename"
+ld -m elf_i386 "$filename.o" -o "$filename.out"
+./"$filename.out"

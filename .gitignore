@@ -1,7 +1,3 @@
-*
-!*/
-!*.asm
-!*.md
-!.gitignore
-!*.sh
-!*.txt
+*.o
+*.out
+
