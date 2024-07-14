@@ -1,12 +1,15 @@
-# try to print numbers like characters. will they be interpretted as ascii characters byte by byte?
+.equ SYS_EXIT, 1
+.equ SYS_WRITE, 4
+.equ STDOUT_DESCRIPTOR, 1
 
 .section .data
-message: .ascii "Hello World\n"
-message_length: .long 12
+    message: .ascii "Hello World\n"
+    message_length: .long 12
 
 .section .bss
 
 .section .text
+
 .global _start
 
 _start:
@@ -19,13 +22,13 @@ _start:
 
 # The write system call will give back the number of bytes written in %eax or an error code.
 
-movl $1, %ebx
-movl $4, %eax
+movl $STDOUT_DESCRIPTOR, %ebx
+movl $SYS_WRITE, %eax
 movl $message, %ecx
 movl message_length, %edx
 int $0x80
 
 # exit
 movl $0, %ebx
-movl $1, %eax
+movl $SYS_EXIT, %eax
 int $0x80
