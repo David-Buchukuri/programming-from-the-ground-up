@@ -57,9 +57,6 @@
 
 .section .text
 # STACK POSITIONS
-.equ ST_SIZE_RESERVE, 8
-.equ ST_FD_IN, -4
-.equ ST_FD_OUT, -8
 .equ ST_ARGC, 0 # Number of arguments
 .equ ST_ARGV_0, 4 # Name of program
 .equ ST_ARGV_1, 8 # Input file name
@@ -68,58 +65,9 @@
 .globl _start
 _start:
     ###INITIALIZE PROGRAM###
-
     # save the stack pointer
     movl %esp, %ebp
 
-    # Allocate space for our file descriptors on the stack
-    subl $ST_SIZE_RESERVE, %esp
-
-    open_files:
-    open_fd_in:
-    ###OPEN INPUT FILE###
-    # open syscall
-    movl $SYS_OPEN, %eax
-
-    #input filename into %ebx
-    movl ST_ARGV_1(%ebp), %ebx
-
-    #read-only flag
-    movl $O_RDONLY, %ecx
-
-    #this doesn't really matter for reading
-    movl $0666, %edx
-
-    # call Linux
-    int $LINUX_SYSCALL
-
-    store_fd_in:
-    #save the given file descriptor
-    movl %eax, ST_FD_IN(%ebp)
-
-    open_fd_out:
-    ###OPEN OUTPUT FILE###
-    # open the file
-    movl $SYS_OPEN, %eax
-
-    # output filename into %ebx
-    movl ST_ARGV_2(%ebp), %ebx
-
-    # flags for writing to the file
-    movl $O_CREAT_WRONLY_TRUNC, %ecx
-
-    # mode for new file (if it's created)
-    movl $0666, %edx
-
-    # call Linux
-    int $LINUX_SYSCALL
-
-    store_fd_out:
-    # store the file descriptor here
-    movl %eax, ST_FD_OUT(%ebp)
-
-    # we saved file descriptors in the stack. File descriptor from which we are reading is stored 4 after bp and file 
-    # descriptor to which we are writing, is stored 4 bytes away from bp, right after the read file descriptor.
 
     ###BEGIN MAIN LOOP###
     read_loop_begin:
@@ -127,7 +75,7 @@ _start:
         movl $SYS_READ, %eax
 
         # get the input file descriptor
-        movl ST_FD_IN(%ebp), %ebx
+        movl $STDIN, %ebx
 
         # the location to read into
         movl $BUFFER_DATA, %ecx
@@ -144,7 +92,7 @@ _start:
         # check for end of file marker
         cmpl $END_OF_FILE, %eax
 
-        #if found or on error, go to the end
+        # if found or on error, go to the end
         jle end_loop
 
 
@@ -163,7 +111,7 @@ _start:
         movl $SYS_WRITE, %eax
 
         # file to use
-        movl ST_FD_OUT(%ebp), %ebx
+        movl $STDOUT, %ebx
 
         # location of the buffer
         movl $BUFFER_DATA, %ecx
@@ -177,15 +125,6 @@ _start:
         end_loop:
         ###CLOSE THE FILES###
         #NOTE - we don't need to do error checking on these, because error conditions don't signify anything special here
-        
-        # close input and output files
-        movl $SYS_CLOSE, %eax
-        movl ST_FD_OUT(%ebp), %ebx
-        int $LINUX_SYSCALL
-
-        movl $SYS_CLOSE, %eax
-        movl ST_FD_IN(%ebp), %ebx
-        int $LINUX_SYSCALL
 
         ###EXIT###
         movl $SYS_EXIT, %eax
