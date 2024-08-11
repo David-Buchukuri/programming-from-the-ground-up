@@ -28,7 +28,7 @@ record1:
     .long 45
 
 record2:
-    .ascii "Marilyn\0"
+    .ascii "Fredrock\0"
     .rept 32 # Padding to 40 bytes
     .byte 0
     .endr
