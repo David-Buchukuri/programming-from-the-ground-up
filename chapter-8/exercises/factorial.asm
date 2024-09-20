@@ -1,22 +1,7 @@
-.section .data
-    printf_first_arg: .ascii "result is %d\n\0"
-
 .section .text
-.global _start
+.section .data
+.global factorial
 
-_start:
-    pushl $5
-    call factorial
-    addl $4, %esp
-
-    pushl %eax
-    pushl $printf_first_arg
-    call printf
-    addl $8, %esp
-
-    # exit
-    pushl $0
-    call exit
 
 .type factorial, @function
 factorial:
