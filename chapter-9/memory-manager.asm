@@ -98,8 +98,15 @@ allocate:
     pushl %ebp
     movl %esp, %ebp
 
+    # check if allocate init was not called and call it if that's the case
+    cmpl $0, heap_begin
+    jne start_allocating
+    call allocate_init
+
+   
     # if call to allocate_in_existing_memory_regions function was successfull, 
     # return memory address returned from that function call
+    start_allocating:
     pushl ST_MEM_SIZE(%ebp)
     call allocate_in_existing_memory_regions
     addl $4, %esp
@@ -190,10 +197,38 @@ allocate_in_existing_memory_regions:
         jmp return_allocate_in_existing_memory_regions
 
     allocate_in_existing_memory_region:
-        # mark current memory region as unavailable
+        # size left for another memory region is -> size of the current mem region - requested size - 8
+        # if the result is positive we can split into 2 regions
+        subl %ecx, %edx
+        subl $HEADER_SIZE, %edx
+        cmpl $0, %edx
+        jg split_regions
+
         movl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
         addl $HEADER_SIZE, %eax
         jmp return_allocate_in_existing_memory_regions
+
+        split_regions:
+        # set first header and unavailable and adjust it's size
+        movl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
+        movl %ecx, HDR_SIZE_OFFSET(%eax)
+
+        # save value of the first header. Later we want to return that + header size
+        pushl %eax
+
+        # next address of the header
+        addl HDR_SIZE_OFFSET(%eax), %eax
+        addl $HEADER_SIZE, %eax
+
+        # set header values fro the second region
+        movl $AVAILABLE, HDR_AVAIL_OFFSET(%eax)
+        movl %edx, HDR_SIZE_OFFSET(%eax)
+
+        # calculate return value(pointer to the starting address of the first region)
+        popl %eax
+        addl $HEADER_SIZE, %eax
+        jmp return_allocate_in_existing_memory_regions
+        
     
     return_allocate_in_existing_memory_regions:
         movl %ebp, %esp

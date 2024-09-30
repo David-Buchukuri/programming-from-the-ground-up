@@ -22,10 +22,26 @@ _start:
     # Allocate space for local variables, which will hold the file descriptors
     subl  $8, %esp
 
-    # allocate buffer for reading records
-    call allocate_init
+    # test allocation and deallocation of a bigger sized memory region followed by allocation of a smaller sized memory
+    pushl $3000
+    call allocate
+    addl $4, %esp
+
+    pushl %eax
+    call deallocate
+    addl $4, %esp
+
+    pushl $100
+    call allocate
+    addl $4, %esp
+
+    pushl %eax
+    call deallocate
+    addl $4, %esp
+
     pushl $RECORD_SIZE
     call allocate
+    addl $4, %esp
     movl %eax, record_buffer
 
     # Open the file
@@ -89,4 +105,10 @@ _start:
         movl $SYS_EXIT, %eax
         movl $0, %ebx
         int $LINUX_SYSCALL
+
+
+# as read-records.s -o read-records.o
+# ld alloc.o read-record.o read-records.o write-newline.o count-chars.o -o read-records
+
+
 
