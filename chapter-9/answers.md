@@ -69,3 +69,18 @@ it's easy to create bugs when doing that.
 <br>
 <br>
 <br>
+
+## Going Further
+
+#### Research garbage collection. What advantages and disadvantages does this have over the style of memory management used here?
+
+Garbage collection is process of programming language runtime automatically freeing unused memory. Main advantage of programs written in garbage collected languages is that there are no memory leaks in them. Those type of programming languages are often referred as memory safe languages. 
+
+Downside of these type of languages is speed. To achieve this automatic freeing of memory, of course, there are some procedures executing in runtime. Purpose of those procedures is to determine regions of memory that are unused and free them. Of course that takes extra time.
+
+
+#### Research reference counting. What advantages and disadvantages does this have over the style of memory management used here?
+
+Reference counting is technique to implement garbage collection. Main idea is that we track number of references to the object during the execution of the program. If it drops to zero, we free the memory. All advantages mentioned above still applies here. It should be mentioned that overhead with this technique is not as big. 
+
+This approach has several disadvantages. For example  circular references, which is basically situation where object A holds reference to object B and vice versa. In this case it's hard to track real number references to the object and this could lead to memory leaks. Also using this technique in a multithreaded environment is problematic, because we have a state(number of references to the objects) and there might occur cases when number of reference is not updated properly do to race conditions.  
