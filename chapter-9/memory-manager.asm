@@ -93,101 +93,31 @@ allocate_init:
 .globl allocate
 .type allocate,@function
 .equ ST_MEM_SIZE, 8 #stack position of the memory size to allocate
+
 allocate:
-    pushl %ebp #standard function stuff
+    pushl %ebp
     movl %esp, %ebp
 
-    movl ST_MEM_SIZE(%ebp), %ecx #%ecx will hold the size
-    #we are looking for (which is the first and only parameter)
-    movl heap_begin, %eax #%eax will hold the current search location
-    movl current_break, %ebx #%ebx will hold the current break
+    # if call to allocate_in_existing_memory_regions function was successfull, 
+    # return memory address returned from that function call
+    pushl ST_MEM_SIZE(%ebp)
+    call allocate_in_existing_memory_regions
+    addl $4, %esp
+    cmpl $0, %eax
+    jne return_allocate
 
-    alloc_loop_begin: #here we iterate through each
-    # memory region
-    cmpl %ebx, %eax #need more memory if these are equal
-    je move_break
-    # grab the size of this memory
-    movl HDR_SIZE_OFFSET(%eax), %edx
-    # If the space is unavailable, go to the
-    cmpl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
-    je next_location #next one
-    # If the space is available, compare the size to the needed size. If its big enough, go to allocate_here
-    cmpl %edx, %ecx 
-    jle allocate_here 
-
-    next_location:
-    addl $HEADER_SIZE, %eax #The total size of the memory
-    addl %edx, %eax #region is the sum of the size
-    # requested (currently stored
-    # in %edx), plus another 8 bytes
-    # for the header (4 for the
-    # AVAILABLE/UNAVAILABLE flag,
-    # and 4 for the size of the
-    # region). So, adding %edx and $8
-    # to %eax will get the address
-    # of the next memory region
-    jmp alloc_loop_begin #go look at the next location
-
-    # if we’ve made it here, that means that the region header of the region
-    # to allocate is in %eax mark space as unavailable
-    allocate_here:
-    movl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
-    # move %eax past the header to the usable memory (since that’s what we return)
-    addl $HEADER_SIZE, %eax 
-
-    movl %ebp, %esp
-    popl %ebp
-    ret
-
-    move_break: #if we’ve made it here, that means that we have exhausted all
-    # addressable memory, and we need to ask for more.
-    # %ebx holds the current endpoint of the data, and %ecx holds its size
-    #we need to increase %ebx to
-    #where we _want_ memory
-    #to end, so we
-    addl $HEADER_SIZE, %ebx #add space for the headers
-    #structure
-    addl %ecx, %ebx #add space to the break for the data requested
-    #now its time to ask Linux
-    #for more memory
-    pushl %eax #save needed registers
-    pushl %ecx
-    pushl %ebx
-    movl $SYS_BRK, %eax #reset the break (%ebx has
-    #the requested break point)
-    int $LINUX_SYSCALL
-    #under normal conditions, this should
-    #return the new break in %eax, which
-    #will be either 0 if it fails, or
-    #it will be equal to or larger than
-    #we asked for. We don’t care
-    #in this program where it actually
-    #sets the break, so as long as %eax
-    #isn’t 0, we don’t care what it is
-    cmpl $0, %eax #check for error conditions
-    je error
-    popl %ebx #restore saved registers
-    popl %ecx
-    popl %eax
-    #set this memory as unavailable, since we’re about to
-    #give it away
-    movl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
-    #set the size of the memory
-    movl %ecx, HDR_SIZE_OFFSET(%eax)
-    #move %eax to the actual start of usable memory.
-    #%eax now holds the return value
-    addl $HEADER_SIZE, %eax
-    movl %ebx, current_break #save the new break
-    movl %ebp, %esp #return the function
-    popl %ebp
-    ret
-    error:
-    movl $0, %eax #on error, we return zero
-    movl %ebp, %esp
-    popl %ebp
-    ret
+    # if we couldn't allocate in existing regions, ask Linux to map more memory for us
+    pushl ST_MEM_SIZE(%ebp)
+    call allocate_by_moving_break
+    addl $4, %esp
 
 
+    return_allocate:
+        movl %ebp, %esp
+        popl %ebp
+        ret
+
+   
 
 # deallocate #
 # PURPOSE:
@@ -211,9 +141,104 @@ allocate:
 
 deallocate:
     movl ST_MEMORY_SEG(%esp), %eax
+
     #get the pointer to the real beginning of the memory
     subl $HEADER_SIZE, %eax
+
     #mark it as available
     movl $AVAILABLE, HDR_AVAIL_OFFSET(%eax)
 
     ret
+
+
+
+allocate_in_existing_memory_regions:
+    pushl %ebp
+    movl %esp, %ebp
+
+    # %ecx - the size of requested of a region(the only parameter)
+    # %eax - current search location
+    # %ebx - the current break
+    movl ST_MEM_SIZE(%ebp), %ecx 
+    movl heap_begin, %eax 
+    movl current_break, %ebx 
+
+    alloc_loop_begin:
+        # if these are equal, we dont have any existing memory regions available or big enough
+        cmpl %ebx, %eax 
+        je valid_region_not_found
+
+        # grab the size of this memory region
+        movl HDR_SIZE_OFFSET(%eax), %edx
+
+        # If the space is unavailable, go to the next location
+        cmpl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
+        je next_location 
+
+        # If the space is available, compare the size to the needed size. If its big enough, allocate
+        cmpl %edx, %ecx 
+        jle allocate_in_existing_memory_region 
+
+        next_location:
+            addl $HEADER_SIZE, %eax
+            addl %edx, %eax 
+            jmp alloc_loop_begin
+
+
+    valid_region_not_found:
+        movl $0, %eax
+        jmp return_allocate_in_existing_memory_regions
+
+    allocate_in_existing_memory_region:
+        # mark current memory region as unavailable
+        movl $UNAVAILABLE, HDR_AVAIL_OFFSET(%eax)
+        addl $HEADER_SIZE, %eax
+        jmp return_allocate_in_existing_memory_regions
+    
+    return_allocate_in_existing_memory_regions:
+        movl %ebp, %esp
+        popl %ebp
+        ret
+
+
+ allocate_by_moving_break:
+    pushl %ebp
+    movl %esp, %ebp
+
+    # next breakpoint should be at address of header size + requested size + current break point
+    # we ask linux to allocate till that address, write headers on address of previous break point
+    # and return previous break point + 8
+
+
+    # calculating next break address
+    movl $HEADER_SIZE, %ebx
+    addl current_break, %ebx
+    addl ST_MEM_SIZE(%ebp), %ebx
+    movl $SYS_BRK, %eax
+    int $LINUX_SYSCALL
+
+    # check for error conditions
+    cmpl $0, %eax 
+    je error
+
+    # set header values
+    movl current_break, %edi
+    movl $UNAVAILABLE, (%edi)
+    movl ST_MEM_SIZE(%ebp), %ecx
+    movl %ecx, 4(%edi)
+
+    # store start of usable memory in eax
+    movl current_break, %eax
+    addl $HEADER_SIZE, %eax
+
+    #save the new break
+    movl %ebx, current_break
+
+    return_allocate_by_moving_break:
+        movl %ebp, %esp
+        popl %ebp
+        ret
+
+    error:
+        movl $0, %eax #on error, we return zero
+        jmp return_allocate_by_moving_break
